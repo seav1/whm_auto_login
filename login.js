@@ -11,7 +11,7 @@ const { chromium } = require('playwright');
     const page = await context.newPage();
 
     try {
-      await page.goto('https://app.koyeb.com/auth/signin');
+      await page.goto('https://webhostmost.com/login');
       await page.fill('input[name="email"]', usernames[i]);
       await page.fill('input[name="password"]', passwords[i]);
       await page.click('button[type="submit"]');
