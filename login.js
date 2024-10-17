@@ -2,7 +2,6 @@ const { chromium } = require('playwright');
 
 (async () => {
   const browser = await chromium.launch();
-
   const usernames = process.env.USERNAMES.split(',');
   const passwords = process.env.PASSWORDS.split(',');
 
@@ -15,12 +14,12 @@ const { chromium } = require('playwright');
       await page.fill('input[name="username"]', usernames[i]);
       await page.fill('input[name="password"]', passwords[i]);
       await page.click('button[type="submit"]');
-      
-      // 增加超时时间或等待特定元素出现
-      await page.waitForNavigation({ waitUntil: '44d', timeout: 300000 });
 
-      // 或者等待某个特定元素出现
-      // await page.waitForSelector('selector_for_element_indicating_successful_login', { timeout: 60000 });
+      // 使用更具体的等待方法，等待特定元素
+      await page.waitForSelector('selector_for_element_indicating_successful_login', { timeout: 30000 });
+      
+      // 或者可以使用 waitForFunction 进行自定义条件等待
+      // await page.waitForFunction(() => document.querySelector('selector_for_element_indicating_successful_login') !== null, { timeout: 30000 });
 
       console.log(`用户 ${usernames[i]} 登录成功！`);
     } catch (error) {
