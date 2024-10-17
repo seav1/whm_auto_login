@@ -17,7 +17,7 @@ const { chromium } = require('playwright');
       await page.click('button[type="submit"]');
       
       // 增加超时时间或等待特定元素出现
-      await page.waitForNavigation({ waitUntil: 'networkidle', timeout: 300000 });
+      await page.waitForNavigation({ waitUntil: '44d', timeout: 300000 });
 
       // 或者等待某个特定元素出现
       // await page.waitForSelector('selector_for_element_indicating_successful_login', { timeout: 60000 });
