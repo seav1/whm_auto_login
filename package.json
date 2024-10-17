@@ -1,0 +1,12 @@
+{
+  "name": "koyeb-login",
+  "version": "1.0.0",
+  "description": "A script to login to Koyeb using Playwright",
+  "main": "login.js",
+  "scripts": {
+    "start": "node login.js"
+  },
+  "dependencies": {
+    "playwright": "latest"
+  }
+}

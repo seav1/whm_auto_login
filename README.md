@@ -1,0 +1,1 @@
+GitHub Secrets 设置一个名为USERNAMES和一个名为PASSWORDS的变量，对应用户名和密码，多个用户名密码的，以半角逗号隔开。
