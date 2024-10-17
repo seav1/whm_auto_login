@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: npm install && npx playwright install
              
-      - name: Login to Koyeb
+      - name: Login to webhostmost
         run: node login.js
         env:
           USERNAMES: ${{ secrets.USERNAMES }}
