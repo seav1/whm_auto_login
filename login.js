@@ -15,7 +15,9 @@ const { chromium } = require('playwright');
       await page.fill('input[name="username"]', usernames[i]);
       await page.fill('input[name="password"]', passwords[i]);
       await page.click('button[type="submit"]');
-
+      await page.waitForTimeout(3000);
+      await page.click('button[type="submit"]');
+      
       // 检查页面跳转是否成功
       await page.waitForURL('https://webhostmost.com/clientarea.php', { timeout: 60000 });
 
