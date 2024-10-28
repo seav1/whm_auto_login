@@ -1,38 +1,29 @@
-name: Login to webhostmost
-on:
-  schedule:
-    - cron:  '0 0 * * 0'
-  workflow_dispatch:
-  
-jobs:
-  login:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: write
+const { chromium } = require('playwright');
+
+(async () => {
+  const browser = await chromium.launch();
+
+  const usernames = process.env.USERNAMES.split(',');
+  const passwords = process.env.PASSWORDS.split(',');
+
+  for (let i = 0; i < usernames.length; i++) {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    try {
+      await page.goto('https://webhostmost.com/login');
+      await page.fill('input[name="username"]', usernames[i]);
+      await page.fill('input[name="password"]', passwords[i]);
+      await page.click('button[type="submit"]');
       
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      // 检查页面跳转是否成功
+      await page.waitForURL('https://webhostmost.com/clientarea.php', { timeout: 60000 });
 
-      - name: Delete workflow runs
-        uses: Mattraks/delete-workflow-runs@v2
-        with:
-          token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          retain_days: 0
-          keep_minimum_runs: 2
+      console.log(`用户 ${usernames[i]} 登录成功！`);
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: npm install && npx playwright install
-             
-      - name: Login to webhostmost
-        run: node login.js
-        env:
-          USERNAMES: ${{ secrets.USERNAMES }}
-          PASSWORDS: ${{ secrets.PASSWORDS }}
+    } catch (error) {
+      console.error(`用户 ${usernames[i]} 登录失败：`, error);
+    } finally {
+      await context.close();
+    }
+  }
