@@ -1,38 +1,9 @@
 const { chromium } = require('playwright');
 const axios = require('axios');
 
-const YOUR_API_KEY = 'Justinfu';
-const YOUR_API_SECRET = 'trdmHyS6pS6lVBdqxOcd';
-
-async function solveCaptcha(siteKey, url) {
-  // 向 TrueCaptcha 提交任务
-  const response = await axios.post('https://truecaptcha.com/api/v1/captcha/solve', {
-    api_key: YOUR_API_KEY,
-    site_key: siteKey,
-    page_url: url,
-  });
-
-  const captchaId = response.data.captcha_id;
-
-  // 轮询以检查 CAPTCHA 是否已解决
-  while (true) {
-    const result = await axios.get(`https://truecaptcha.com/api/v1/captcha/status`, {
-      params: {
-        api_key: YOUR_API_KEY,
-        captcha_id: captchaId,
-      },
-    });
-
-    if (result.data.status === 'solved') {
-      return result.data.response;
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 5000)); // 等待 5 秒再检查
-  }
-}
-
 (async () => {
   const browser = await chromium.launch();
+
   const usernames = process.env.USERNAMES.split(',');
   const passwords = process.env.PASSWORDS.split(',');
 
@@ -46,26 +17,23 @@ async function solveCaptcha(siteKey, url) {
       await page.fill('input[name="password"]', passwords[i]);
       await page.click('button[type="submit"]');
 
-      // 检查是否出现 reCAPTCHA 验证
-      const recaptchaFrame = await page.frame({ name: 'recaptcha' });
-      if (recaptchaFrame) {
-        const siteKey = await recaptchaFrame.evaluate(() => {
-          return document.querySelector('.g-recaptcha').getAttribute('data-sitekey');
-        });
+      // Wait for reCAPTCHA to appear
+      await page.waitForSelector('iframe[title="reCAPTCHA"]');
 
-        const captchaResponse = await solveCaptcha(siteKey, page.url());
-        await page.evaluate(response => {
-          document.getElementById('g-recaptcha-response').innerHTML = response;
-        }, captchaResponse);
-        await page.click('button[type="submit"]'); // 再次提交
-      }
+      // Solve reCAPTCHA using TrueCaptcha
+      const captchaResponse = await solveCaptcha(page);
+      await page.evaluate(`document.getElementById('g-recaptcha-response').innerHTML="${captchaResponse}";`);
 
-      // 检查页面跳转是否成功
+      // Submit the form
+      await page.click('button[type="submit"]');
+
+      // Check if login was successful
       await page.waitForURL('https://webhostmost.com/clientarea.php', { timeout: 60000 });
-      console.log(`用户 ${usernames[i]} 登录成功！`);
+
+      console.log(`User ${usernames[i]} logged in successfully!`);
 
     } catch (error) {
-      console.error(`用户 ${usernames[i]} 登录失败：`, error);
+      console.error(`User ${usernames[i]} login failed:`, error);
     } finally {
       await context.close();
     }
@@ -73,3 +41,32 @@ async function solveCaptcha(siteKey, url) {
 
   await browser.close();
 })();
+
+async function solveCaptcha(page) {
+  const captchaImage = await page.$eval('iframe[title="reCAPTCHA"]', iframe => {
+    const rect = iframe.getBoundingClientRect();
+    return {
+      x: rect.left,
+      y: rect.top,
+      width: rect.width,
+      height: rect.height
+    };
+  });
+
+  const screenshot = await page.screenshot({
+    clip: {
+      x: captchaImage.x,
+      y: captchaImage.y,
+      width: captchaImage.width,
+      height: captchaImage.height
+    }
+  });
+
+  const response = await axios.post('https://api.truecaptcha.org/solve', {
+    image: screenshot.toString('base64'),
+    userid: process.env.TRUECAPTCHA_USERID,
+    apikey: process.env.TRUECAPTCHA_APIKEY
+  });
+
+  return response.data.result;
+}
