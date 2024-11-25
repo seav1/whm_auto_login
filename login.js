@@ -12,6 +12,7 @@ const { chromium } = require('playwright');
 
     try {
       await page.goto('https://webhostmost.com/login');
+      await page.waitForTimeout(2000);
       await page.fill('input[name="username"]', usernames[i]);
       await page.fill('input[name="password"]', passwords[i]);
       await page.click('button[type="submit"]');
