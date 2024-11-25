@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
     let retries = 0;
     let success = false;
 
-    while (retries < 3 && !success) {
+    while (retries < 2 && !success) {
       const context = await browser.newContext();
       const page = await context.newPage();
 
