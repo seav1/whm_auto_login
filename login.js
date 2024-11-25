@@ -35,4 +35,9 @@ const { chromium } = require('playwright');
     }
 
     if (!success) {
-      console.error(`用户 ${usernames[i]} 登录失败，已达最大
+      console.error(`用户 ${usernames[i]} 登录失败，已达最大重试次数。`);
+    }
+  }
+
+  await browser.close();
+})();
