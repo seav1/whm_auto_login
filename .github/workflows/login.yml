@@ -1,29 +1,30 @@
-name: Playwright Login Automation
+name: WebHostMost Login
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'  # 每6小时运行一次
 
 jobs:
-  playwright-login:
+  login:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: |
-          npm install playwright @playwright/test playwright-extra playwright-extra-plugin-stealth
-
-      - name: Run Playwright login script
-        run: node login.js
-        env:
-          USERNAMES: ${{ secrets.USERNAMES }}
-          PASSWORDS: ${{ secrets.PASSWORDS }}
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install playwright
+        playwright install chromium
+    
+    - name: Run Login Script
+      env:
+        USERNAMES: ${{ secrets.USERNAMES }}
+        PASSWORDS: ${{ secrets.PASSWORDS }}
+      run: python login.py
