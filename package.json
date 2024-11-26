@@ -1,25 +1,28 @@
 {
   "name": "webhostmost-login-automation",
   "version": "1.0.0",
-  "description": "Automated login script for WebHostMost",
+  "description": "Automated login script for WebHostMost using Playwright",
   "main": "login.js",
   "scripts": {
-    "start": "node login.js",
+    "login": "node login.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "login",
     "automation",
-    "playwright"
+    "login",
+    "playwright",
+    "github-actions"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "Your Name",
+  "license": "MIT",
   "dependencies": {
-    "playwright": "latest",
-    "playwright-extra": "latest", 
-    "playwright-stealth": "latest"
+    "playwright": "^1.41.0"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seav1/whm_auto_login.git"
   }
 }
