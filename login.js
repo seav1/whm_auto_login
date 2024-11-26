@@ -1,18 +1,30 @@
-const { chromium } = require('playwright-extra');
-const StealthPlugin = require('playwright-stealth');
-
-chromium.use(StealthPlugin());
+const { chromium } = require('playwright');
 
 async function loginToWebHostMost(username, password) {
     const browser = await chromium.launch({
         headless: true
     });
-    const context = await browser.newContext();
+    const context = await browser.newContext({
+        // 添加更多浏览器指纹伪造选项
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        extraHTTPHeaders: {
+            'Accept-Language': 'en-US,en;q=0.9',
+        }
+    });
+    
+    // 禁用某些特征
+    await context.addInitScript(() => {
+        Object.defineProperty(navigator, 'webdriver', { get: () => false });
+        Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+    });
+
     const page = await context.newPage();
 
     try {
         // 导航到登录页面
-        await page.goto('https://webhostmost.com/login');
+        await page.goto('https://webhostmost.com/login', { 
+            waitUntil: 'networkidle' 
+        });
 
         // 等待登录表单加载
         await page.waitForSelector('#username');
