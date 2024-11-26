@@ -29,10 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm init -y
-          npm install playwright
-      
-      - name: Install Playwright Browsers
-        run: npx playwright install chromium
+          npm install playwright-extra playwright-stealth
       
       - name: Run Login Script
         env:
