@@ -8,6 +8,10 @@ on:
 jobs:
   login-check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+      
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
