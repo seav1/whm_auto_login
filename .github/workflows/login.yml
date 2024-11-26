@@ -36,3 +36,53 @@ jobs:
           USERNAMES: ${{ secrets.USERNAMES }}
           PASSWORDS: ${{ secrets.PASSWORDS }}
         run: node login.js
+
+name: WebHostMost Login
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'  # 每6小时运行一次
+
+jobs:
+  login:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    
+    strategy:
+      matrix:
+        include:
+          - username: ${{ secrets.USERNAMES }}
+            password: ${{ secrets.PASSWORDS }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+     - name: Delete workflow runs
+       uses: Mattraks/delete-workflow-runs@v2
+       with:
+         token: ${{ github.token }}
+         repository: ${{ github.repository }}
+         retain_days: 0
+         keep_minimum_runs: 2
+    
+    - name: Install dependencies
+      run: |
+        npm init -y
+        npm install playwright
+    
+    - name: Install Playwright browsers
+      run: npx playwright install chromium
+    
+    - name: Run Login Script
+      env:
+        USERNAME: ${{ matrix.username }}
+        PASSWORD: ${{ matrix.password }}
+      run: node login.js
