@@ -1,38 +1,26 @@
-name: WebHostMost Login
+name: whm-auto-Login
 
-on:
+on: 
   workflow_dispatch:
-  schedule:
-    - cron: '0 */6 * * *'  # 每6小时运行一次
 
 jobs:
   login:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        include:
-          - username: ${{ secrets.USERNAMES }}
-            password: ${{ secrets.PASSWORDS }}
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v2
       with:
         node-version: '20'
-    
+
     - name: Install dependencies
-      run: |
-        npm init -y
-        npm install playwright
-    
-    - name: Install Playwright browsers
-      run: npx playwright install chromium
-    
-    - name: Run Login Script
-      env:
-        USERNAME: ${{ matrix.username }}
-        PASSWORD: ${{ matrix.password }}
+      run: npm install
+
+    - name: Run Playwright script
       run: node login.js
+      env:
+        USERNAMES: ${{ secrets.USERNAMES }}
+        PASSWORDS: ${{ secrets.PASSWORDS }}
