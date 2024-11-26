@@ -3,57 +3,51 @@ import sys
 import asyncio
 from playwright.async_api import async_playwright
 
-async def login_to_webhostmost(username, password):
+async def login_webhostmost(username, password):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
         
         try:
+            # 导航到登录页面
             await page.goto('https://webhostmost.com/login')
             
-            # 等待登录表单加载
-            await page.wait_for_selector('input[name="username"]', timeout=10000)
-            
-            # 填写用户名和密码
+            # 输入用户名和密码
             await page.fill('input[name="username"]', username)
             await page.fill('input[name="password"]', password)
             
-            # 处理隐藏的Captcha
-            max_attempts = 2
+            # 处理隐藏式captcha
+            max_attempts = 3
             for attempt in range(max_attempts):
                 try:
-                    # 尝试点击登录按钮
+                    # 点击登录按钮
                     await page.click('input[type="submit"]')
                     
-                    # 等待页面跳转或错误消息
+                    # 等待页面跳转或登录结果
                     await page.wait_for_url('https://webhostmost.com/clientarea.php', timeout=10000)
-                    print(f"成功登录: {username}")
+                    
+                    print(f"登录成功: {username}")
                     return True
                 
                 except Exception as e:
-                    print(f"登录尝试 {attempt + 1} 失败: {e}")
-                    
-                    # 检查是否有错误消息
-                    error_locator = page.locator('.alert-danger')
-                    if await error_locator.count() > 0:
-                        error_text = await error_locator.first.inner_text()
-                        print(f"错误信息: {error_text}")
-                    
-                    # 如果不是最后一次尝试，刷新页面
                     if attempt < max_attempts - 1:
+                        print(f"登录第 {attempt + 1} 次失败，重试中...")
+                        # 可能需要添加额外的验证码处理逻辑
                         await page.reload()
-            
-            print(f"登录失败: {username}")
-            return False
+                        await asyncio.sleep(2)
+                    else:
+                        print(f"登录失败：{username}")
+                        return False
         
         except Exception as e:
-            print(f"发生错误: {e}")
+            print(f"发生错误：{e}")
             return False
         
         finally:
             await browser.close()
 
 async def main():
+    # 从环境变量获取用户名和密码
     usernames = os.environ.get('USERNAMES', '').split(',')
     passwords = os.environ.get('PASSWORDS', '').split(',')
     
@@ -61,14 +55,13 @@ async def main():
         print("用户名和密码数量不匹配")
         sys.exit(1)
     
-    tasks = []
-    for username, password in zip(usernames, passwords):
-        task = login_to_webhostmost(username.strip(), password.strip())
-        tasks.append(task)
+    # 并行登录
+    tasks = [login_webhostmost(username.strip(), password.strip()) 
+             for username, password in zip(usernames, passwords)]
     
     results = await asyncio.gather(*tasks)
     
-    # 如果所有登录都失败，则退出码为1
+    # 检查是否至少有一个账户登录成功
     if not any(results):
         sys.exit(1)
 
