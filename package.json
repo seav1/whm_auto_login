@@ -15,9 +15,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "playwright": "latest",
-    "playwright-extra": "latest", 
-    "playwright-stealth": "latest"
+    "playwright": "^1.41.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.41.2"
   },
   "engines": {
     "node": ">=18.0.0"
