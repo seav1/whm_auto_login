@@ -1,13 +1,25 @@
 {
-  "name": "A",
+  "name": "webhostmost-login-automation",
   "version": "1.0.0",
-  "description": "B",
+  "description": "Automated login script for WebHostMost",
   "main": "login.js",
   "scripts": {
-    "start": "node login.js"
+    "start": "node login.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "login",
+    "automation",
+    "playwright"
+  ],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "playwright": "latest",
-    "axios": "latest"
+    "playwright": "^1.41.2",
+    "playwright-extra": "^4.3.1", 
+    "playwright-stealth": "^2.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
