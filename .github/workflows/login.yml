@@ -27,4 +27,4 @@ jobs:
       env:
         USERNAMES: ${{ secrets.USERNAMES }}
         PASSWORDS: ${{ secrets.PASSWORDS }}
-      run: python login_script.py
+      run: python login.py
