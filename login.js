@@ -1,5 +1,4 @@
-const { chromium } = require('playwright-extra');
-const RecaptchaSolver = require('recaptcha-solver');
+const { chromium } = require('playwright');
 
 async function loginToWebHostMost(username, password) {
   const browser = await chromium.launch({ 
@@ -19,39 +18,61 @@ async function loginToWebHostMost(username, password) {
     await page.fill('input[name="username"]', username);
     await page.fill('input[name="password"]', password);
 
-    // Handle reCAPTCHA (if present)
+    // Handle potential reCAPTCHA or hidden challenges
     let loginAttempts = 0;
     let loginSuccess = false;
 
     while (loginAttempts < 2 && !loginSuccess) {
       try {
-        // Try to solve hidden captcha if exists
-        const recaptchaFrame = await page.frames().find(
-          frame => frame.url().includes('recaptcha')
-        );
+        // Advanced reCAPTCHA/Challenge detection and handling
+        const challengeElements = [
+          'iframe[src*="recaptcha"]',
+          '[data-testid="challenge"]',
+          '.captcha-container'
+        ];
 
-        if (recaptchaFrame) {
-          const solver = new RecaptchaSolver();
-          await solver.solve(recaptchaFrame);
+        const challengeSelector = challengeElements.join(',');
+        
+        // Check for challenge elements
+        const challengeExists = await page.locator(challengeSelector).count() > 0;
+
+        if (challengeExists) {
+          console.log('Captcha or challenge detected. Attempting manual bypass...');
+          
+          // Optional: Look for alternative interaction methods
+          const invisibleCheckbox = await page.locator('input[type="checkbox"][style*="hidden"]');
+          if (await invisibleCheckbox.count() > 0) {
+            await invisibleCheckbox.first().click();
+          }
+
+          // Additional interaction to simulate human behavior
+          await page.mouse.move(
+            Math.random() * 500, 
+            Math.random() * 500
+          );
+          await page.mouse.down();
+          await page.mouse.up();
         }
 
-        // Click login button
-        await page.click('button[type="submit"]');
+        // Click login button with careful timing
+        await page.click('button[type="submit"]', { 
+          delay: Math.random() * 500 + 300 
+        });
 
-        // Wait for navigation or error
-        await page.waitForNavigation({
-          url: 'https://webhostmost.com/clientarea.php',
+        // Wait for potential navigation or error
+        await page.waitForURL('https://webhostmost.com/clientarea.php', {
           timeout: 10000
         });
 
         loginSuccess = true;
         console.log(`Login successful for user: ${username}`);
+
       } catch (loginError) {
         loginAttempts++;
         console.log(`Login attempt ${loginAttempts} failed for ${username}`);
         
-        // Wait a bit before retrying
-        await page.waitForTimeout(2000);
+        // Exponential backoff
+        await page.waitForTimeout(2000 * loginAttempts);
       }
     }
 
@@ -59,18 +80,27 @@ async function loginToWebHostMost(username, password) {
       throw new Error(`Failed to login after 2 attempts for ${username}`);
     }
 
-    // Optional: Take screenshot or perform additional actions
-    await page.screenshot({ path: `login_${username}.png` });
+    // Take screenshot as proof of successful login
+    await page.screenshot({ 
+      path: `login_${username}_success.png`,
+      fullPage: true 
+    });
 
   } catch (error) {
-    console.error(`Error during login process: ${error.message}`);
+    console.error(`Login process error: ${error.message}`);
+    
+    // Optional: Screenshot of error state
+    await page.screenshot({ 
+      path: `login_${username}_error.png`,
+      fullPage: true 
+    });
+
     process.exit(1);
   } finally {
     await browser.close();
   }
 }
 
-// Main execution
 async function main() {
   const usernames = process.env.USERNAMES.split(',');
   const passwords = process.env.PASSWORDS.split(',');
