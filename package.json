@@ -15,7 +15,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "playwright": "^1.41.2"
+    "playwright": "latest",
+    "playwright-extra": "latest", 
+    "playwright-stealth": "latest"
   },
   "engines": {
     "node": ">=18.0.0"
