@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "automation",
+    "automation", 
     "login",
     "playwright",
     "webhostmost"
@@ -20,19 +20,9 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "playwright": "^1.41.0",
-    "playwright-extra": "^4.3.6",
-    "recaptcha-solver": "^1.2.3"
+    "playwright": "^1.41.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.5"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/seav1/webhostmost-login-automation.git"
-  },
-  "bugs": {
-    "url": "https://github.com/seav1/webhostmost-login-automation/issues"
-  },
-  "homepage": "https://github.com/seav1/webhostmost-login-automation#readme"
+  }
 }
