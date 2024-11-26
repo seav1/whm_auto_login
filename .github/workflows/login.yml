@@ -1,52 +1,29 @@
-name: WebHostMost Login Automation
+name: Playwright Login Automation
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-  schedule:
-    - cron: '0 */6 * * *'  # Run every 6 hours
 
 jobs:
-  login-check:
+  playwright-login:
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    
-    - name: Install Playwright Browsers
-      run: |
-        npm init -y
-        npm install playwright
-        npx playwright install chromium
-    
-    - name: Run Login Script
-      env:
-        USERNAMES: ${{ secrets.USERNAMES }}
-        PASSWORDS: ${{ secrets.PASSWORDS }}
-      run: |
-        node login.js
-    
-    - name: Upload Login Screenshots
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: login-screenshots
-        path: '*.png'
-        retention-days: 3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Notify on Failure
-      if: failure()
-      uses: actions/github-script@v7
-      with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
-        script: |
-          github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: 'WebHostMost Login Automation Failed',
-            body: 'The login automation workflow encountered an error. Please check the workflow logs.'
-          })
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm install playwright @playwright/test playwright-extra playwright-extra-plugin-stealth
+
+      - name: Run Playwright login script
+        run: node login.js
+        env:
+          USERNAMES: ${{ secrets.USERNAMES }}
+          PASSWORDS: ${{ secrets.PASSWORDS }}
