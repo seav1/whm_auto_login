@@ -1,20 +1,24 @@
-name: Login to webhostmost
-on:
-  schedule:
-    - cron:  '0 0 * * 0'
-  workflow_dispatch:
-  
-jobs:
-  login:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: write
-      
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+name: WebHostMost Login Check
 
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'  # 每天凌晨2点运行
+
+jobs:
+  login-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install playwright-extra playwright-stealth
+          
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2
         with:
@@ -27,17 +31,9 @@ jobs:
         uses: fscarmen/warp-on-actions@v1.3
         with:
           stack: dual   # Optional. Support [ ipv4, ipv6, dual ]. Default is dual.
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: npm install && npx playwright install
-             
-      - name: Login to webhostmost
-        run: node login.js
+      
+      - name: Run Login Script
         env:
           USERNAMES: ${{ secrets.USERNAMES }}
           PASSWORDS: ${{ secrets.PASSWORDS }}
+        run: node login.js
