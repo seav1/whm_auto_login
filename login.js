@@ -1,11 +1,9 @@
-const { chromium } = require('playwright-extra');
-const StealthPlugin = require('playwright-stealth');
+const { chromium } = require('playwright');
+const fs = require('fs');
 
-chromium.use(StealthPlugin());
-
-async function loginToWebHostMost(username, password) {
-    const browser = await chromium.launch({
-        headless: true
+async function loginWebHostMost(username, password) {
+    const browser = await chromium.launch({ 
+        headless: true 
     });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -15,70 +13,69 @@ async function loginToWebHostMost(username, password) {
         await page.goto('https://webhostmost.com/login');
 
         // 等待登录表单加载
-        await page.waitForSelector('#username');
-        await page.waitForSelector('#password');
+        await page.waitForSelector('form#loginform');
 
         // 填写用户名和密码
-        await page.fill('#username', username);
-        await page.fill('#password', password);
+        await page.fill('input[name="username"]', username);
+        await page.fill('input[name="password"]', password);
 
-        // 处理可能的隐藏式验证码
+        // 尝试处理隐藏式captcha
         let loginAttempts = 0;
-        let loginSuccess = false;
+        let loginSuccessful = false;
 
-        while (loginAttempts < 3 && !loginSuccess) {
-            // 尝试提交登录表单
-            await page.click('button[type="submit"]');
+        while (loginAttempts < 2 && !loginSuccessful) {
+            // 点击登录按钮
+            await page.click('input[type="submit"]');
 
             // 等待页面跳转或错误提示
             try {
-                await Promise.race([
-                    page.waitForURL('https://webhostmost.com/clientarea.php', { timeout: 5000 }),
-                    page.waitForSelector('.alert-danger', { timeout: 5000 })
-                ]);
-
-                // 检查是否成功登录
-                if (page.url().includes('clientarea.php')) {
-                    console.log(`用户 ${username} 登录成功！`);
-                    loginSuccess = true;
-                } else {
-                    console.log(`用户 ${username} 登录失败，正在重试...`);
-                    loginAttempts++;
-
-                    // 可能需要刷新页面或重新输入
-                    await page.reload();
-                    await page.fill('#username', username);
-                    await page.fill('#password', password);
+                // 最多等待10秒，检查是否成功登录
+                await page.waitForURL('https://webhostmost.com/clientarea.php', { timeout: 10000 });
+                loginSuccessful = true;
+                console.log(`Login successful for user: ${username}`);
+            } catch (err) {
+                // 检查是否有错误消息
+                const errorSelector = '.alert-danger';
+                const hasError = await page.$(errorSelector);
+                
+                if (hasError) {
+                    const errorText = await page.textContent(errorSelector);
+                    console.log(`Login attempt ${loginAttempts + 1} failed: ${errorText}`);
                 }
-            } catch (error) {
-                console.log(`登录过程中出现异常：${error.message}`);
+
                 loginAttempts++;
             }
         }
 
-        if (!loginSuccess) {
-            console.log(`用户 ${username} 多次登录失败`);
+        if (!loginSuccessful) {
+            console.error(`Login failed for user: ${username} after 2 attempts`);
+        }
+
+        // 可以在这里添加截图或其他日志记录逻辑
+        if (loginSuccessful) {
+            await page.screenshot({ path: `login-success-${username}.png` });
         }
 
     } catch (error) {
-        console.error(`登录脚本执行错误：${error.message}`);
+        console.error(`Error during login process: ${error}`);
     } finally {
         await browser.close();
     }
 }
 
-async function main() {
-    const usernames = process.env.USERNAMES.split(',');
-    const passwords = process.env.PASSWORDS.split(',');
+// 处理多用户登录
+async function multiUserLogin() {
+    const usernames = process.env.USERNAME.split(',');
+    const passwords = process.env.PASSWORD.split(',');
 
     if (usernames.length !== passwords.length) {
         console.error('用户名和密码数量不匹配');
-        process.exit(1);
+        return;
     }
 
     for (let i = 0; i < usernames.length; i++) {
-        await loginToWebHostMost(usernames[i].trim(), passwords[i].trim());
+        await loginWebHostMost(usernames[i].trim(), passwords[i].trim());
     }
 }
 
-main().catch(console.error);
+multiUserLogin().catch(console.error);
