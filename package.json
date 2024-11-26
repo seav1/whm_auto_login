@@ -1,28 +1,19 @@
 {
-  "name": "webhostmost-login-automation",
+  "name": "playwright-login",
   "version": "1.0.0",
-  "description": "Automated login script for WebHostMost using Playwright",
+  "description": "GitHub Action to automate login using Playwright with Stealth",
   "main": "login.js",
   "scripts": {
-    "start": "node login.js",
-    "login": "node login.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "automation", 
-    "login",
-    "playwright",
-    "webhostmost"
-  ],
-  "author": "Your Name",
-  "license": "MIT",
-  "engines": {
-    "node": ">=18.0.0"
+    "start": "node login.js"
   },
   "dependencies": {
-    "playwright": "^1.41.0"
+    "playwright": "^1.34.0",
+    "playwright-extra": "^3.0.0",
+    "playwright-extra-plugin-stealth": "^3.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.10.5"
-  }
+    "dotenv": "^16.0.0"
+  },
+  "author": "",
+  "license": "ISC"
 }
